@@ -30,7 +30,7 @@ export class TareasController {
    * Busca y retorna una tarea por su id
    * Endpoint: GET /tareas/:id
    */
- @Get('buscar/nombre')
+ @Get('buscar/:nombre')
 obtenerTareaPorNombre(@Param('nombre') nombre: string) {
   return this.tareasService.buscarPorNombre(nombre);
 }

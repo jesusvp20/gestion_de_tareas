@@ -24,9 +24,9 @@ class TareaService {
     }
   }
 //buscar tarea 
-Future<List<Tarea>> buscarTarea(int id) async {
+Future<List<Tarea>> buscarTareaPorNombre(String nombre) async {
   try {
-    final response = await http.get(Uri.parse('$_url/$id'));
+    final response = await http.get(Uri.parse('$_url/buscar/$nombre'));
 
     if (response.statusCode == 200) {
       final List<dynamic> data = jsonDecode(response.body);
