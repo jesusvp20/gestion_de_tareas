@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import '../models/tarea_model.dart';
 import '../services/tarea_service.dart';
 
@@ -25,6 +26,11 @@ class _HomeScreenState extends State<HomeScreen> {
     super.initState();
     _cargarTareas();
   }
+
+ String formatearFecha(DateTime? fecha) {
+  if (fecha == null) return '';
+  return DateFormat('dd/MM/yyyy hh:mm a').format(fecha);
+}
 
   Future<void> _cargarTareas() async {
     try {
@@ -63,7 +69,7 @@ class _HomeScreenState extends State<HomeScreen> {
         }
 
         _limpiarCampos();
-        _cargarTareas();
+        await _cargarTareas();
       } catch (e) {
         _mostrarMensaje('Error al guardar tarea: $e');
       }
@@ -76,8 +82,10 @@ class _HomeScreenState extends State<HomeScreen> {
       if (confirmacion == true) {
         final resultado = await _tareaService.eliminarTarea(tarea);
         if (resultado) {
+          setState(() {
+            _tareas.removeWhere((t) => t.id == tarea.id);
+          });
           _mostrarMensaje('Tarea eliminada');
-          _cargarTareas();
         } else {
           _mostrarMensaje('No se pudo eliminar la tarea');
         }
@@ -121,9 +129,21 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _mostrarMensaje(String mensaje) {
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(SnackBar(content: Text(mensaje)));
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(mensaje)));
+  }
+
+  Future<void> _marcarTareaComoCompletada(Tarea tarea) async {
+    try {
+      final resultado = await _tareaService.marcarTareaComoCompletada(tarea.id!);
+      if (resultado) {
+        _mostrarMensaje('Tarea marcada como completada');
+        _cargarTareas();
+      } else {
+        _mostrarMensaje('Error al marcar tarea como completada');
+      }
+    } catch (e) {
+      _mostrarMensaje('Error: $e');
+    }
   }
 
   Future<bool?> _mostrarDialogoConfirmacion() {
@@ -157,7 +177,7 @@ class _HomeScreenState extends State<HomeScreen> {
         padding: const EdgeInsets.all(16),
         child: Column(
           children: [
-            /// 🔍 Campo de búsqueda
+            // Campo de búsqueda
             Row(
               children: [
                 Expanded(
@@ -178,7 +198,7 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
             const SizedBox(height: 16),
 
-            /// 📝 Formulario
+            // Formulario
             Form(
               key: _formKey,
               child: Column(
@@ -186,14 +206,12 @@ class _HomeScreenState extends State<HomeScreen> {
                   TextFormField(
                     controller: _nombreController,
                     decoration: const InputDecoration(labelText: 'Nombre'),
-                    validator: (value) =>
-                        value!.isEmpty ? 'Ingrese un nombre' : null,
+                    validator: (value) => value!.isEmpty ? 'Ingrese un nombre' : null,
                   ),
                   TextFormField(
                     controller: _descripcionController,
                     decoration: const InputDecoration(labelText: 'Descripción'),
-                    validator: (value) =>
-                        value!.isEmpty ? 'Ingrese una descripción' : null,
+                    validator: (value) => value!.isEmpty ? 'Ingrese una descripción' : null,
                   ),
                   const SizedBox(height: 10),
                   Row(
@@ -217,7 +235,7 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
             const SizedBox(height: 16),
 
-            /// 📋 Lista de tareas
+            // Lista de tareas
             Expanded(
               child: ListView.builder(
                 itemCount: _tareas.length,
@@ -226,10 +244,46 @@ class _HomeScreenState extends State<HomeScreen> {
                   return Card(
                     child: ListTile(
                       title: Text(tarea.nombreTarea),
-                      subtitle: Text(tarea.descripcion),
-                      trailing: IconButton(
-                        icon: const Icon(Icons.delete),
-                        onPressed: () => _eliminarTarea(tarea),
+                      subtitle: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(tarea.descripcion),
+                          if (tarea.fechaCreacion != null)
+                            Text(
+                              'Creada: ${formatearFecha(tarea.fechaCreacion)}',
+                              style: const TextStyle(
+                                fontSize: 12,
+                                fontStyle: FontStyle.italic,
+                                color: Colors.blueGrey,
+                              ),
+                            ),
+                          if (tarea.fechaCompletado != null)
+                            Text(
+                              'Completada: ${formatearFecha(tarea.fechaCompletado)}',
+                              style: const TextStyle(
+                                fontSize: 12,
+                                fontStyle: FontStyle.italic,
+                                color: Colors.green,
+                              ),
+                            ),
+                        ],
+                      ),
+                      trailing: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Checkbox(
+                            value: tarea.tareaCompletada,
+                            onChanged: (bool? valor) {
+                              if (valor == true && !tarea.tareaCompletada) {
+                                _marcarTareaComoCompletada(tarea);
+                              }
+                            },
+                          ),
+                          IconButton(
+                            icon: const Icon(Icons.delete),
+                            onPressed: () => _eliminarTarea(tarea),
+                          ),
+                        ],
                       ),
                       onTap: () => _seleccionarTarea(tarea),
                     ),

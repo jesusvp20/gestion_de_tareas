@@ -107,4 +107,5 @@ async buscarPorNombre(nombre: string) {
       where: { id },
     });
   }
+  
 }

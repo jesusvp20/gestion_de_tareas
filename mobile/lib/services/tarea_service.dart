@@ -23,25 +23,35 @@ class TareaService {
       throw Exception('Error de conexión al cargar tareas: $e');
     }
   }
-//buscar tarea 
-Future<List<Tarea>> buscarTareaPorNombre(String nombre) async {
-  try {
-    final response = await http.get(Uri.parse('$_url/buscar/$nombre'));
 
-    if (response.statusCode == 200) {
-      final List<dynamic> data = jsonDecode(response.body);
-      return data.map((json) => Tarea.fromJson(json)).toList();
-    } else {
-      throw Exception(
-        'Error ${response.statusCode}: No se pudieron cargar las tareas.',
-      );
+  //buscar tarea
+  Future<List<Tarea>> buscarTareaPorNombre(String nombre) async {
+    try {
+      final response = await http.get(Uri.parse('$_url/buscar/$nombre'));
+
+      if (response.statusCode == 200) {
+        final decoded = jsonDecode(response.body);
+
+        if (decoded is List) {
+          // Convertimos cada elemento a Map<String, dynamic>
+          return decoded
+              .map((json) => Tarea.fromJson(Map<String, dynamic>.from(json)))
+              .toList();
+        } else if (decoded is Map) {
+          // Convertimos el objeto a Map<String, dynamic> y lo metemos en lista
+          return [Tarea.fromJson(Map<String, dynamic>.from(decoded))];
+        } else {
+          throw Exception('Formato de respuesta no esperado');
+        }
+      } else if (response.statusCode == 404) {
+        return [];
+      } else {
+        throw Exception('Error al buscar tarea: ${response.statusCode}');
+      }
+    } catch (e) {
+      throw Exception('Error de conexión al cargar tareas: $e');
     }
-  } catch (e) {
-    throw Exception('Error de conexión al cargar tareas: $e');
   }
-}
-  
-
 
   /// Crear una nueva tarea
   Future<String> crearTarea(Tarea tarea) async {
@@ -89,15 +99,11 @@ Future<List<Tarea>> buscarTareaPorNombre(String nombre) async {
       );
 
       if (response.statusCode == 200) {
-
         debugPrint("La tarea ha sido actualizada correctamente");
-        
-        return true;
 
+        return true;
       } else {
-        
         return false;
-      
       }
     } catch (e) {
       debugPrint("Error al actualizar la tarea");
@@ -106,7 +112,6 @@ Future<List<Tarea>> buscarTareaPorNombre(String nombre) async {
   }
 
   Future<bool> eliminarTarea(Tarea tarea) async {
-  
     final url = Uri.parse('$_url/${tarea.id}');
 
     try {
@@ -124,6 +129,26 @@ Future<List<Tarea>> buscarTareaPorNombre(String nombre) async {
       }
     } catch (e) {
       debugPrint(' Error de conexión al eliminar tarea: $e');
+      return false;
+    }
+  }
+
+  Future<bool> marcarTareaComoCompletada(int id) async {
+    final url = Uri.parse('$_url/$id/completar');
+
+    try {
+      final response = await http.patch(url);
+
+      if (response.statusCode == 200) {
+        return true;
+      } else {
+        debugPrint(
+          'Error al marcar tarea como completada: ${response.statusCode}',
+        );
+        return false;
+      }
+    } catch (e) {
+      debugPrint('Excepción al marcar tarea como completada: $e');
       return false;
     }
   }

@@ -4,6 +4,7 @@ class Tarea {
   final String descripcion;
   final bool tareaCompletada;
   final DateTime? fechaCreacion;
+  final DateTime? fechaCompletado; 
 
   Tarea({
     this.id,
@@ -11,19 +12,24 @@ class Tarea {
     required this.descripcion,
     required this.tareaCompletada,
     this.fechaCreacion,
+    this.fechaCompletado,
   });
 
   factory Tarea.fromJson(Map<String, dynamic> json) {
-    return Tarea(
-      id: json['id'],
-      nombreTarea: json['nombre_tarea'],
-      descripcion: json['descripcion'],
-      tareaCompletada: json['tarea_completada'],
-      fechaCreacion: json['fecha_creacion'] != null
-          ? DateTime.parse(json['fecha_creacion'])
-          : null,
-    );
-  }
+  return Tarea(
+    id: json['id'],
+    nombreTarea: json['nombre_tarea'],
+    descripcion: json['descripcion'],
+    tareaCompletada: json['tarea_completada'],
+    fechaCreacion: json['fecha_creacion'] != null
+        ? DateTime.parse(json['fecha_creacion']).toLocal()
+        : null,
+    fechaCompletado: json['tarea_completada_fecha'] != null
+        ? DateTime.parse(json['tarea_completada_fecha']).toLocal()
+        : null,
+  );
+}
+
 
   Map<String, dynamic> toJson() {
     return {
