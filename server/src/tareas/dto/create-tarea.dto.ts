@@ -33,8 +33,8 @@ export class CreateTareaDto {
    * - No puede ser una cadena vacía ni nulo.
    */
 
-  @ApiProperty({ required: false, description: "Estado de la tarea" })
+  @ApiProperty({ required: false, description: "Estado de la tarea", default: false })
   @IsOptional()
   @IsBoolean({ message: 'El campo tarea_completada debe ser true o false ' })
-  tarea_completada?: boolean;
+   tarea_completada?: boolean;
 }
