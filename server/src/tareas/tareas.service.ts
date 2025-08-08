@@ -35,19 +35,21 @@ async ListarTareas() {
   return tareas;
 }
   /**
-   * Busca una tarea por su id
-   * @param id - id de la tarea a buscar
+   * Busca una tarea por su nombre
+   * @param nombre - nombre de la tarea a buscar
    * @returns La tarea si existe, o lanza una excepción si no existe
    */
-  async BuscarTarea(id: number) {
-    const tarea = await this.prisma.tareas.findUnique({ where: { id } });
+async buscarPorNombre(nombre: string) {
+  const tarea = await this.prisma.tareas.findFirst({
+    where: { nombre_tarea: nombre },
+  });
 
-    if (!tarea) {
-      throw new NotFoundException(`No se encontró la tarea con ID ${id}`);
-    }
-
-    return tarea;
+  if (!tarea) {
+    throw new NotFoundException(`No se encontró una tarea con nombre "${nombre}"`);
   }
+
+  return tarea;
+}
 
   /**
    * Actualiza una tarea existente con nuevos datos

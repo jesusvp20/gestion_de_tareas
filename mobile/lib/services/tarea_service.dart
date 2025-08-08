@@ -1,10 +1,12 @@
 import 'dart:convert';
 import "package:http/http.dart" as http;
 import '../models/tarea_model.dart';
+import 'package:flutter/foundation.dart';
 
 class TareaService {
   final String _url = 'https://gestion-de-tareas-eg5t.onrender.com/tareas';
 
+  /// Obtener lista de tareas
   Future<List<Tarea>> obtenerTareas() async {
     try {
       final response = await http.get(Uri.parse(_url));
@@ -13,10 +15,116 @@ class TareaService {
         final List<dynamic> data = jsonDecode(response.body);
         return data.map((json) => Tarea.fromJson(json)).toList();
       } else {
-        throw Exception('Error al cargar las tareas: ${response.statusCode}');
+        throw Exception(
+          'Error ${response.statusCode}: No se pudieron cargar las tareas.',
+        );
       }
     } catch (e) {
-      throw Exception('Error al conectar con la API: $e');
+      throw Exception('Error de conexión al cargar tareas: $e');
+    }
+  }
+//buscar tarea 
+Future<List<Tarea>> buscarTarea(int id) async {
+  try {
+    final response = await http.get(Uri.parse('$_url/$id'));
+
+    if (response.statusCode == 200) {
+      final List<dynamic> data = jsonDecode(response.body);
+      return data.map((json) => Tarea.fromJson(json)).toList();
+    } else {
+      throw Exception(
+        'Error ${response.statusCode}: No se pudieron cargar las tareas.',
+      );
+    }
+  } catch (e) {
+    throw Exception('Error de conexión al cargar tareas: $e');
+  }
+}
+  
+
+
+  /// Crear una nueva tarea
+  Future<String> crearTarea(Tarea tarea) async {
+    if (tarea.nombreTarea.trim().isEmpty) {
+      return 'El nombre de la tarea es obligatorio.';
+    }
+
+    if (tarea.descripcion.trim().isEmpty) {
+      return 'La descripción de la tarea es obligatoria.';
+    }
+
+    try {
+      final response = await http.post(
+        Uri.parse(_url),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode(tarea.toJson()),
+      );
+
+      if (response.statusCode == 201) {
+        return 'Tarea creada exitosamente';
+      } else {
+        return 'Error al crear la tarea: ${response.statusCode}';
+      }
+    } catch (e) {
+      return 'Error de conexion al crear la tarea: $e';
+    }
+  }
+
+  //actualizar tarea
+
+  Future<bool> actualizarTarea(Tarea tarea) async {
+    final url = Uri.parse('$_url/${tarea.id}');
+
+    final body = jsonEncode({
+      'nombre_tarea': tarea.nombreTarea,
+      'descripcion': tarea.descripcion,
+      'tarea_completada': tarea.tareaCompletada,
+    });
+
+    try {
+      final response = await http.patch(
+        url,
+        headers: {'Content-Type': 'application/json'},
+        body: body,
+      );
+
+      if (response.statusCode == 200) {
+
+        debugPrint("La tarea ha sido actualizada correctamente");
+        
+        return true;
+
+      } else {
+        
+        return false;
+      
+      }
+    } catch (e) {
+      debugPrint("Error al actualizar la tarea");
+      return false;
+    }
+  }
+
+  Future<bool> eliminarTarea(Tarea tarea) async {
+  
+    final url = Uri.parse('$_url/${tarea.id}');
+
+    try {
+      final response = await http.delete(
+        url,
+        headers: {'Content-Type': 'application/json'},
+      );
+
+      if (response.statusCode == 200 || response.statusCode == 204) {
+        debugPrint(' Tarea eliminada exitosamente');
+        return true;
+      } else {
+        debugPrint(' Error al eliminar la tarea: ${response.statusCode}');
+        return false;
+      }
+    } catch (e) {
+      debugPrint(' Error de conexión al eliminar tarea: $e');
+      return false;
     }
   }
 }

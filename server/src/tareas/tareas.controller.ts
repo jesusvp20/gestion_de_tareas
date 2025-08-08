@@ -30,10 +30,10 @@ export class TareasController {
    * Busca y retorna una tarea por su id
    * Endpoint: GET /tareas/:id
    */
-  @Get(':id')
-  obtenerTareaPorId(@Param('id', ParseIntPipe) id: number) {
-    return this.tareasService.BuscarTarea(id);
-  }
+ @Get('buscar/nombre')
+obtenerTareaPorNombre(@Param('nombre') nombre: string) {
+  return this.tareasService.buscarPorNombre(nombre);
+}
 
   /**
    * Marca una tarea como completada, actualizando también la fecha
