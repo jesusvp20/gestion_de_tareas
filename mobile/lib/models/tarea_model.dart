@@ -1,3 +1,5 @@
+
+//modelo de tarea  representa una tarea en la aplicación con sus propiedades y métodos para convertir entre JSON y objeto Dart.
 class Tarea {
   final int? id;
   final String nombreTarea;

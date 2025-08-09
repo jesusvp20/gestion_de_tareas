@@ -8,50 +8,62 @@ class TareaService {
 
   /// Obtener lista de tareas
   Future<List<Tarea>> obtenerTareas() async {
-    try {
-      final response = await http.get(Uri.parse(_url));
+  try {
+    final response = await http.get(Uri.parse(_url));
 
-      if (response.statusCode == 200) {
-        final List<dynamic> data = jsonDecode(response.body);
-        return data.map((json) => Tarea.fromJson(json)).toList();
-      } else {
-        throw Exception(
-          'Error ${response.statusCode}: No se pudieron cargar las tareas.',
-        );
-      }
-    } catch (e) {
-      throw Exception('Error de conexión al cargar tareas: $e');
+    if (response.statusCode == 200) {
+      final List<dynamic> data = jsonDecode(response.body);
+      return data.map((json) => Tarea.fromJson(json)).toList();
+    } 
+    // Si no hay tareas, retorna lista vacía
+    else if (response.statusCode == 404) {
+      return [];
+    } else {
+      throw Exception(
+        'Error ${response.statusCode}: No se pudieron cargar las tareas.',
+      );
     }
+  } catch (e) {
+    throw Exception('Error de conexión al cargar tareas: $e');
+  }
   }
 
   //buscar tarea
   Future<List<Tarea>> buscarTareaPorNombre(String nombre) async {
-    try {
-      final response = await http.get(Uri.parse('$_url/buscar/$nombre'));
+  try {
+    final response = await http.get(
+      Uri.parse('$_url/buscar/${Uri.encodeComponent(nombre)}'),
+    );
 
-      if (response.statusCode == 200) {
-        final decoded = jsonDecode(response.body);
+    if (response.statusCode == 200) {
+      final decoded = jsonDecode(response.body);
 
-        if (decoded is List) {
-          // Convertimos cada elemento a Map<String, dynamic>
-          return decoded
-              .map((json) => Tarea.fromJson(Map<String, dynamic>.from(json)))
-              .toList();
-        } else if (decoded is Map) {
-          // Convertimos el objeto a Map<String, dynamic> y lo metemos en lista
-          return [Tarea.fromJson(Map<String, dynamic>.from(decoded))];
-        } else {
-          throw Exception('Formato de respuesta no esperado');
-        }
-      } else if (response.statusCode == 404) {
-        return [];
+      if (decoded is List) {
+        return decoded
+            .map((json) => Tarea.fromJson(Map<String, dynamic>.from(json)))
+            .toList();
+      } else if (decoded is Map) {
+        return [Tarea.fromJson(Map<String, dynamic>.from(decoded))];
       } else {
-        throw Exception('Error al buscar tarea: ${response.statusCode}');
+        throw Exception('Formato de respuesta no esperado');
       }
-    } catch (e) {
+    }
+
+    // Manejar 404 sin lanzar excepción
+    if (response.statusCode == 404) {
+      return [];
+    }
+
+    throw Exception('Error al buscar tarea: ${response.statusCode}');
+  } catch (e) {
+    // Solo lanzar si realmente es un error de red u otro fallo grave
+    if (e is http.ClientException) {
       throw Exception('Error de conexión al cargar tareas: $e');
     }
+    rethrow;
   }
+}
+
 
   /// Crear una nueva tarea
   Future<String> crearTarea(Tarea tarea) async {
@@ -110,7 +122,7 @@ class TareaService {
       return false;
     }
   }
-
+// Eliminar tarea
   Future<bool> eliminarTarea(Tarea tarea) async {
     final url = Uri.parse('$_url/${tarea.id}');
 
@@ -133,23 +145,22 @@ class TareaService {
     }
   }
 
-  Future<bool> marcarTareaComoCompletada(int id) async {
-    final url = Uri.parse('$_url/$id/completar');
+  Future<bool> marcarTareaComoCompletada(int id, bool completada) async {
+  final url = Uri.parse('$_url/$id');
+  
+  try {
+    final response = await http.patch(
+      url,
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({'tarea_completada': completada}),
+    );
 
-    try {
-      final response = await http.patch(url);
-
-      if (response.statusCode == 200) {
-        return true;
-      } else {
-        debugPrint(
-          'Error al marcar tarea como completada: ${response.statusCode}',
-        );
-        return false;
-      }
-    } catch (e) {
-      debugPrint('Excepción al marcar tarea como completada: $e');
-      return false;
-    }
+    return response.statusCode == 200;
+  } catch (e) {
+    debugPrint('Error al actualizar tarea: $e');
+    return false;
   }
+}
+
+
 }
