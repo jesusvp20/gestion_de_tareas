@@ -49,4 +49,4 @@ http://localhost:3000/api
 https://chatgpt.com/share/6897bcb1-37a4-800e-9ec1-c1064fb70166- tuve error con Flutter Gradle ya que formatee este computador de fabrica y se me presento ese error
 https://chatgpt.com/share/6897be49-0f94-800e-aab6-8970d2323e87 tuve unos problemas con el deploy del backend
 
-use tambien la IA en la ayuda para solucionar errores, solucioanr problemas que no entiendo y ayudarme en organizar el codigo 
+use tambien la IA en la ayuda para solucionar errores, solucioanr problemas que no entiendo y explicandomelos y ayudarme en organizar el codigo 
