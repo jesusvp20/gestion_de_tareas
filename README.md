@@ -31,14 +31,14 @@ npx prisma migrate dev --name init
 # Levantar el servidor en desarrollo
 npm run start:dev
 
-#Api disponible  y documentada en swagger:
+#Api disponible y desplegada con render  y documentada en swagger:
 https://gestion-de-tareas-eg5t.onrender.com/api
 
 ##Frontend (Flutter)
 ## cd.. para salirnos de la carpeta server, 
 cd mobile para acceder 
 
-## aseguearse que en la carpeta service este esta url final String _url = 'https://gestion-de-tareas-eg5t.onrender.com/tareas';
+## aseguerarse que en la carpeta service este esta url final String _url = 'https://gestion-de-tareas-eg5t.onrender.com/tareas';
 # Ejecutar la app en un emulador o dispositivo físico
 flutter run
 
